@@ -1,8 +1,13 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-}
+    alias(libs.plugins.compose.compiler)
 
+    id ("com.google.dagger.hilt.android")
+    id("kotlinx-serialization")
+
+    id ("kotlin-kapt")
+}
 android {
     namespace = "com.mahikr.gitrepoinfo"
     compileSdk = 34
@@ -66,4 +71,45 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    //hilt
+    implementation (libs.hilt.android)
+    annotationProcessor (libs.hilt.compiler)
+    kapt (libs.hilt.compiler)
+    implementation (libs.androidx.hilt.navigation.compose) //hiltViewModel
+
+    //coil
+    implementation(libs.coil.compose)
+
+    //Retrofit2
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
+
+    implementation(libs.kotlinx.serialization.json)
+
+    implementation(libs.androidx.webkit)
+
+
+
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
+    implementation(libs.androidx.navigation.compose)
+
+    implementation (libs.accompanist.webview)
+
+    //room
+    implementation (libs.androidx.room.runtime)
+    implementation (libs.androidx.room.ktx)
+    kapt ("androidx.room:room-compiler:2.6.1")
+    implementation (libs.androidx.room.paging)
+
+    //Paging3
+    implementation (libs.androidx.paging.compose)
+
+}
+//annotation processor
+kapt {
+    correctErrorTypes = true
 }
