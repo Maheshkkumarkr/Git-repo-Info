@@ -216,7 +216,7 @@ fun <T : Any> PagedDataList(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
 
-                        val errorMessage = if (loadState.error.message != null && loadState.error.message == "Caught all data")
+                        val errorMessage = if (loadState.error.message != null &&( loadState.error.message!!.contains("Caught all data")))
                             "You have caught all data"
                         else {
                             "Something went wrong!!!"
