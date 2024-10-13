@@ -2,6 +2,7 @@ package com.mahikr.gitrepoinfo.data.paging
 
 
 import android.util.Log
+import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.mahikr.gitrepoinfo.domain.model.GitRepo
@@ -11,8 +12,13 @@ import com.mahikr.gitrepoinfo.domain.usecase.db.GetGitReposUseCase
 import com.mahikr.gitrepoinfo.domain.usecase.db.InsertAllReposUseCase
 import com.mahikr.gitrepoinfo.domain.usecase.network.GetRepositoriesUseCase
 import com.mahikr.gitrepoinfo.util.toGitRepo
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 
 
 private const val TAG = "GitRepoPagingSource_TAG"
@@ -47,10 +53,25 @@ class GitRepoPagingSource(
 
         return try {
             // Retry logic with incremental delay
-            retryWithExponentialBackoff(times = 3, initialDelayMillis = 1000, maxDelayMillis = 5000) {
+            retryWithExponentialBackoff(
+                times = 3,
+                initialDelayMillis = 1000,
+                maxDelayMillis = 5000
+            ) {
                 if (fromCache) {
+                    //fetch data from db and checking the newQuery and existing repo query, if not matches throws exception
+                    getAllGitReposUserCase()
+                        .firstOrNull() // Get the first emission from the flow
+                        ?.let { allRepos ->
+                            val oldQuery = allRepos.firstOrNull()?.query
+                            Log.d(TAG, "load: oldQuery $oldQuery vs new query $query")
+                            previousQuery = oldQuery
+                            if (previousQuery == null) {
+                                throw Exception("No data found for the query $query " + if (previousQuery != null) "But yet,You can see the data on $previousQuery" else "")
+                            }
+                        }
                     // Load data from the database (cache) using the repository
-                    getGitReposUseCase(query)
+                    getGitReposUseCase(previousQuery!!)
                         .first()
                         .let { allRepos ->
                             // Paginate the data from the database
@@ -97,6 +118,7 @@ class GitRepoPagingSource(
                     // Insert the fetched data into the database
                     if (response.isNotEmpty()) {
                         insertAllReposUseCase(response.map { it.toGitRepo() })
+                        Log.d(TAG, "response inserted into db....")
                     }
 
                     // Return the loaded data
@@ -126,7 +148,7 @@ suspend fun <T> retryWithExponentialBackoff(
     times: Int,
     initialDelayMillis: Long,
     maxDelayMillis: Long,
-    block: suspend () -> T
+    block: suspend () -> T,
 ): T {
     var currentDelay = initialDelayMillis
     repeat(times - 1) { attempt ->
@@ -141,9 +163,6 @@ suspend fun <T> retryWithExponentialBackoff(
     }
     return block() // Last attempt without catching exceptions
 }
-
-
-
 
 
 /*
@@ -250,7 +269,6 @@ class GitRepoPagingSource(
 }*/
 
 
-
 /*class GitRepoPagingSource(
     private val query: String,
     private val fromCache: Boolean = false,
@@ -349,7 +367,8 @@ class GitRepoPagingSource(
     }
 }
 
-*//**
+*/
+/**
  * Retries the given block of code with exponential backoff.
  *
  * @param times The number of times to retry.
