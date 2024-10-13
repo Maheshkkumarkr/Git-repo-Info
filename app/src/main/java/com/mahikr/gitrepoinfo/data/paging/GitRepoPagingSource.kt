@@ -82,7 +82,7 @@ class GitRepoPagingSource(
                             // Handle empty data scenarios
                             if (paginatedRepos.isEmpty()) {
                                 if (page == 1) {
-                                    throw Exception("No data found for the query $query " + if (previousQuery != null) "But yet,You can see the data on $previousQuery" else "")
+                                    throw Exception("No data found for the query $query seems Caught all data" + if (previousQuery != null) "But yet,You can see the data on $previousQuery" else "")
                                 } else {
                                     return@retryWithExponentialBackoff LoadResult.Page(
                                         data = emptyList(),
@@ -106,7 +106,7 @@ class GitRepoPagingSource(
 
                     // Handle empty data scenarios
                     if (response.isEmpty()) {
-                        throw Exception("No data found for the query $query")
+                        throw Exception("No data found for the query $query, seems Caught all data")
                     }
 
                     // Update database if query has changed and the response is successful
