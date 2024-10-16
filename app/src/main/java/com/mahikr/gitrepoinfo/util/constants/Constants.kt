@@ -17,7 +17,7 @@ object Constants {
     const val REPO_CONTRIBUTORS_END_POINT = "https://api.github.com/repos/"
 
     //valid till Expires on Wed, Dec 11 2024.
-    const val TEMP_TOKEN = "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"
+    const val TEMP_TOKEN = ""
 
     /** PAGING **/
     const val PER_PAGE_COUNT = 10
